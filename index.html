@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jadwal Sholat & Kas Masjid</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #fff;
+    }
+
+	/* Countdown hari besar Islam (tengah atas) */
+		.islamic-countdown{
+		  position:absolute;
+		  top:20px;
+		  left:50%;
+		  transform:translateX(-50%);
+		  background:#ffffff;
+		  border-radius:12px;
+		  padding:6px 14px;
+		  font-size:16px;
+		  font-weight:bold;
+		  color:#065f46;
+		  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+		  z-index:5;
+		}
+
+	
+
+    /* WRAPPER UTAMA */
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      grid-template-rows: 1fr auto;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    /* SIDEBAR KIRI */
+    .sidebar {
+      grid-row: 1 / span 2; /* full tinggi */
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sidebar h3 {
+      text-align: center;
+      font-size: 16px;
+	  padding-bottom:8px;
+    }
+
+    /* WAKTU SHOLAT */
+    .prayer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 16px;
+    }
+
+    .prayer:last-child {
+      border-bottom: none;
+    }
+
+    .prayer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon {
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .time {
+      font-weight: bold;
+      color: #2563eb;
+    }
+
+    /* KAS MASJID */
+    .kas {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 3px;
+      font-size: 20px;
+	  text-align:center;
+    }
+
+    .kas h4 {
+      text-align: center;
+      margin-bottom: 8px;
+	  font-size: 16px;
+    }
+
+    .kas-item {
+      display: flex;
+	  justify-content: flex-end; 
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+	
+	.kas-item .info {
+		  width: 100%;
+		  text-align: center;        /* teks angka rata kanan */
+		}
+    .kas-item.in { color: #059669;text-align:right}
+    .kas-item.out { color: #dc2626; }
+
+    .kas-item.total {
+      border-top: 1px solid #d1d5db;
+      padding-top: 6px;
+      margin-top: 6px;
+      color: #1f2937;
+    }
+
+    /* CONTENT KANAN */
+    .content {
+      background: #ffffff;
+      
+      padding: 10px;
+	   background-size: auto 100%;
+        background-position: center; transition: background-image 1s ease;
+		background-repeat: no-repeat;
+    }
+
+    /* FOOTER KANAN SAJA */
+    .footer {
+      background: #1f2937;
+      color: #ffffff;
+      border-radius: 8px;
+      padding: 10px ;
+      font-size: 1.8em;
+      overflow: hidden;
+	  display:flex;
+	  align-items:center;
+	  gap:12px;
+    }
+	
+	.footer span{
+		  white-space:nowrap; color:yellow;min-width:300px;
+		}
+
+		.footer marquee{
+		  flex:1;
+		}
+
+    @media (max-width: 768px) {
+      .layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+      }
+
+      .sidebar {
+        grid-row: auto;
+      }
+    }
+	.kas_title{
+		Background:green;
+		display:block;
+	}
+	
+	
+	
+
+	#datetime{font-size:0.8rem;color:#000;text-align:center;padding-bottom:10px}
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+	<div id="datetime">
+		
+	</div>
+    <div>
+      <h3>🔆 Waktu Sholat 🔆</h3>
+
+      <div class="prayer">
+        <div class="prayer-left"><span class="icon">🌅</span>Subuh</div>
+        <span class="time" id="s1">04:45</span>
+      </div>
+
+	  <div class="prayer">
+        <div class="prayer-left"><span class="icon">🌄</span>Terbit</div>
+        <span class="time" id="s2">12:05</span>
+      </div>
+	  
+      <div class="prayer">
+        <div class="prayer-left"><span class="icon">☀️</span>Dzuhur</div>
+        <span class="time" id="s3">12:05</span>
+      </div>
+
+      <div class="prayer">
+        <div class="prayer-left"><span class="icon">🌤️</span>Ashar</div>
+        <span class="time" id="s4">15:25</span>
+      </div>
+
+      <div class="prayer">
+        <div class="prayer-left"><span class="icon">🌇</span>Maghrib</div>
+        <span class="time" id="s5">18:10</span>
+      </div>
+
+      <div class="prayer">
+        <div class="prayer-left"><span class="icon">🌙</span>Isya</div>
+        <span class="time" id="s6">19:20</span>
+      </div>
+    </div>
+
+    <div class="kas">
+      <h4>🔆 Kas Masjid 🔆</h4>
+
+      <div class="kas-item in">
+        
+		<div id="debit" class="kasi info">Rp </div>
+      </div>
+
+      <div class="kas-item out">
+        <div id="kredit" class="kas info">Rp</div>
+      </div>
+
+      <div class="kas-item total">
+        <span id="saldo" class="kas info">Rp</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <section class="content" id="content">
+		<div id="islamicCountdown" class="islamic-countdown" style="display:none"></div>
+
+
+		
+  </section>
+
+  <!-- FOOTER (KANAN SAJA) -->
+  <div class="footer">
+	<span id="countdown"></span>
+    <marquee id="marquee" scrollamount="10">
+      📢 Pengumuman: Mohon jamaah mematikan HP saat sholat berlangsung •
+      Infaq dapat disalurkan melalui kotak amal masjid
+    </marquee>
+  </div>
+
+</div>
+
+</body>
+
+<script>
+
+// praytime.js - Prayer Times Calculator (v3.2)
+// Copyright (c) 2007-2025 Hamid Zarrabi-Zadeh
+// Source: https://praytimes.org
+// License: MIT
+
+
+//------------------------- User Interface ------------------------
+/*
+    method(method)          // set calculation method
+    location(coordinates)   // set location
+    timezone(timezone)      // set timezone
+    utcOffset(number)       // set UTC offset in minutes or hours
+    adjust(parameters)      // adjust calculation parameters
+    tune(mins)              // tune times by given minutes
+    format(format)          // options: 24h, 12h, 12H, x, X
+    round(method)           // options: nearest, up, down, none
+    getTimes(date)          // options: date, array, timestamp
+
+
+//------------------------- Sample Usage --------------------------
+
+    const praytime = new PrayTime('ISNA');
+    praytime.location([43, -80]).timezone('America/Toronto');
+    praytime.getTimes();
+
+*/
+//------------------------- PrayTime Class ------------------------
+
+class PrayTime {
+
+    constructor(method) {
+
+        this.methods = {
+            MWL: { fajr: 18, isha: 17 },
+            ISNA: { fajr: 15, isha: 15 },
+            Egypt: { fajr: 19.5, isha: 17.5 },
+            Makkah: { fajr: 18.5, isha: '90 min' },
+            Karachi: { fajr: 18, isha: 18 },
+            Tehran: { fajr: 17.7, maghrib: 4.5, midnight: 'Jafari' },
+            Jafari: { fajr: 16, maghrib: 4, midnight: 'Jafari' },
+            France: { fajr: 12, isha: 12 },
+            Russia: { fajr: 16, isha: 15 },
+            Singapore: { fajr: 20, isha: 18 },
+            defaults: { isha: 14, maghrib: '1 min', midnight: 'Standard' }
+        };
+
+        this.settings = {
+            dhuhr: '0 min',
+            asr: 'Standard',
+            highLats: 'NightMiddle',
+            tune: {},
+            format: '24h',
+            rounding: 'nearest',
+            utcOffset: 'auto',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            location: [0, -(new Date()).getTimezoneOffset() / 4],
+            iterations: 1
+        };
+
+        this.labels = [
+            'Fajr', 'Sunrise', 'Dhuhr', 'Asr',
+            'Sunset', 'Maghrib', 'Isha', 'Midnight'
+        ];
+
+        this.method(method || 'MWL');
+    }
+
+
+    //---------------------- Setters ------------------------
+
+    // set calculation method
+    method(method) {
+        return this.set(this.methods.defaults).set(this.methods[method]);
+    }
+
+    // set calculating parameters
+    adjust(params) {
+        return this.set(params);
+    }
+
+    // set location
+    location(location) {
+        return this.set({ location });
+    }
+
+    // set timezone
+    timezone(timezone) {
+        return this.set({ timezone });
+    }
+
+    // set tuning minutes
+    tune(tune) {
+        return this.set({ tune });
+    }
+
+    // set rounding method
+    round(rounding = 'nearest') {
+        return this.set({ rounding });
+    }
+
+    // set time format
+    format(format) {
+        return this.set({ format });
+    }
+
+    // set settings parameters
+    set(settings) {
+        Object.assign(this.settings, settings);
+        return this;
+    }
+
+    // set utc offset
+    utcOffset(utcOffset = 'auto') {
+        if (typeof utcOffset === 'number' && Math.abs(utcOffset) < 16)
+            utcOffset *= 60;
+        this.set({ timezone: 'UTC' });
+        return this.set({ utcOffset });
+    }
+
+
+    //---------------------- Getters ------------------------
+
+    // get prayer times
+    times(date = 0) {
+        if (typeof date === 'number')
+            date = new Date((date < 1000) ? Date.now() + date * 864e5 : date);
+        if (date.constructor === Date)
+            date = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+        this.utcTime = Date.UTC(date[0], date[1] - 1, date[2]);
+
+        let times = this.computeTimes();
+        this.formatTimes(times);
+        return times;
+    }
+
+    // get prayer times (backward compatible)
+    getTimes(date, location, timezone = 'auto', dst = 0, format = '24h') {
+        if (!location) return this.times(date);
+        const utcOffset = (timezone == 'auto') ? timezone : timezone + dst;
+        this.location(location).utcOffset(utcOffset).format(format);
+        return this.times(date);
+    }
+
+
+    //---------------------- Deprecated -------------------------
+
+    // deprecated: set calculation method
+    setMethod(method) {
+        this.method(method);
+    }
+
+
+    //---------------------- Compute Times -----------------------
+
+    // compute prayer times
+    computeTimes() {
+        let times = {
+            fajr: 5,
+            sunrise: 6,
+            dhuhr: 12,
+            asr: 13,
+            sunset: 18,
+            maghrib: 18,
+            isha: 18,
+            midnight: 24
+        };
+
+        for (let i = 0; i < this.settings.iterations; i++)
+            times = this.processTimes(times);
+
+        this.adjustHighLats(times);
+        this.updateTimes(times);
+        this.tuneTimes(times);
+        this.convertTimes(times);
+        return times;
+    }
+
+    // process prayer times
+    processTimes(times) {
+        const params = this.settings;
+        const horizon = 0.833;
+
+        return {
+            fajr: this.angleTime(params.fajr, times.fajr, -1),
+            sunrise: this.angleTime(horizon, times.sunrise, -1),
+            dhuhr: this.midDay(times.dhuhr),
+            asr: this.angleTime(this.asrAngle(params.asr, times.asr), times.asr),
+            sunset: this.angleTime(horizon, times.sunset),
+            maghrib: this.angleTime(params.maghrib, times.maghrib),
+            isha: this.angleTime(params.isha, times.isha),
+            midnight: this.midDay(times.midnight) + 12
+        }
+    }
+
+    // update times
+    updateTimes(times) {
+        const params = this.settings;
+
+        if (this.isMin(params.maghrib))
+            times.maghrib = times.sunset + this.value(params.maghrib) / 60;
+        if (this.isMin(params.isha))
+            times.isha = times.maghrib + this.value(params.isha) / 60;
+        if (params.midnight == 'Jafari') {
+            const nextFajr = this.angleTime(params.fajr, 29, -1) + 24;
+            times.midnight = (times.sunset + (this.adjusted ? times.fajr + 24 : nextFajr)) / 2;
+        }
+        times.dhuhr += this.value(params.dhuhr) / 60;
+    }
+
+    // tune times
+    tuneTimes(times) {
+        const mins = this.settings.tune
+        for (let i in times)
+            if (i in mins)
+                times[i] += mins[i] / 60;
+    }
+
+    // convert times
+    convertTimes(times) {
+        const lng = this.settings.location[1];
+        for (let i in times) {
+            const time = times[i] - lng / 15;
+            const timestamp = this.utcTime + Math.floor(time * 36e5);
+            times[i] = this.roundTime(timestamp);
+        }
+    }
+
+    // round time
+    roundTime(timestamp) {
+        const rounding = {
+            up: 'ceil',
+            down: 'floor',
+            nearest: 'round'
+        }[this.settings.rounding];
+        if (!rounding)
+            return timestamp;
+        const OneMinute = 6e4;
+        return Math[rounding](timestamp / OneMinute) * OneMinute;
+    }
+
+
+    //---------------------- Calculation Functions -----------------------
+
+    // compute sun position
+    sunPosition(time) {
+        const lng = this.settings.location[1];
+        const D = this.utcTime / 864e5 - 10957.5 + this.value(time) / 24 - lng / 360;
+
+        const g = this.mod(357.529 + 0.98560028 * D, 360);
+        const q = this.mod(280.459 + 0.98564736 * D, 360);
+        const L = this.mod(q + 1.915 * this.sin(g) + 0.020 * this.sin(2 * g), 360);
+        const e = 23.439 - 0.00000036 * D;
+        const RA = this.mod(this.arctan2(this.cos(e) * this.sin(L), this.cos(L)) / 15, 24);
+
+        return {
+            declination: this.arcsin(this.sin(e) * this.sin(L)),
+            equation: q / 15 - RA,
+        }
+    }
+
+    // compute mid-day
+    midDay(time) {
+        const eqt = this.sunPosition(time).equation;
+        const noon = this.mod(12 - eqt, 24);
+        return noon;
+    }
+
+    // compute the time when sun reaches a specific angle below horizon
+    angleTime(angle, time, direction = 1) {
+        const lat = this.settings.location[0];
+        const decl = this.sunPosition(time).declination;
+        const numerator = -this.sin(angle) - this.sin(lat) * this.sin(decl);
+        const diff = this.arccos(numerator / (this.cos(lat) * this.cos(decl))) / 15;
+        return this.midDay(time) + diff * direction;
+    }
+
+    // compute asr angle
+    asrAngle(asrParam, time) {
+        const shadowFactor = { Standard: 1, Hanafi: 2 }[asrParam] || this.value(asrParam);
+        const lat = this.settings.location[0];
+        const decl = this.sunPosition(time).declination;
+        return -this.arccot(shadowFactor + this.tan(Math.abs(lat - decl)));
+    }
+
+
+    //---------------------- Higher Latitudes -----------------------
+
+    // adjust times for higher latitudes
+    adjustHighLats(times) {
+        const params = this.settings;
+        if (params.highLats == 'None')
+            return;
+
+        this.adjusted = false;
+        const night = 24 + times.sunrise - times.sunset;
+
+        Object.assign(times, {
+            fajr: this.adjustTime(times.fajr, times.sunrise, params.fajr, night, -1),
+            isha: this.adjustTime(times.isha, times.sunset, params.isha, night),
+            maghrib: this.adjustTime(times.maghrib, times.sunset, params.maghrib, night)
+        });
+    }
+
+    // adjust time in higher latitudes
+    adjustTime(time, base, angle, night, direction = 1) {
+        const factors = {
+            NightMiddle: 1 / 2,
+            OneSeventh: 1 / 7,
+            AngleBased: 1 / 60 * this.value(angle)
+        };
+        const portion = factors[this.settings.highLats] * night;
+        const timeDiff = (time - base) * direction;
+        if (isNaN(time) || timeDiff > portion) {
+            time = base + portion * direction;
+            this.adjusted = true;
+        }
+        return time;
+    }
+
+
+    //---------------------- Formatting Functions ---------------------
+
+    // format times
+    formatTimes(times) {
+        for (let i in times)
+            times[i] = this.formatTime(times[i]);
+    }
+
+    // format time
+    formatTime(timestamp) {
+        const format = this.settings.format;
+        const InvalidTime = '-----';
+        if (isNaN(timestamp))
+            return InvalidTime;
+        if (typeof format === 'function')
+            return format(timestamp);
+        if (format.toLowerCase() == 'x')
+            return Math.floor(timestamp / ((format == 'X') ? 1000 : 1));
+        return this.timeToString(timestamp, format);
+    }
+
+    // convert time to string
+    timeToString(timestamp, format) {
+        const utcOffset = this.settings.utcOffset;
+        const date = new Date(timestamp + (utcOffset == 'auto' ? 0 : utcOffset) * 6e4);
+        const str = date.toLocaleTimeString('en-US', {
+            timeZone: this.settings.timezone,
+            hour12: format == '24h' ? false : true,
+            hour: format == '24h' ? '2-digit' : 'numeric',
+            minute: '2-digit'
+        });
+        return format == '12H' ? str.replace(/ ?[AP]M/, '') : str;
+    }
+
+
+    //---------------------- Misc Functions -----------------------
+
+    // convert string to number
+    value(str) {
+        return +String(str).split(/[^0-9.+-]/)[0];
+    }
+
+    // detect if input contains 'min'
+    isMin(str) {
+        return String(str).indexOf('min') != -1;
+    }
+
+    // positive modulo
+    mod(a, b) {
+        return ((a % b) + b) % b;
+    }
+
+
+    //--------------------- Degree-Based Trigonometry -----------------
+
+    dtr = (d) => d * Math.PI / 180;
+    rtd = (r) => r * 180 / Math.PI;
+
+    sin = (d) => Math.sin(this.dtr(d));
+    cos = (d) => Math.cos(this.dtr(d));
+    tan = (d) => Math.tan(this.dtr(d));
+
+    arcsin = (d) => this.rtd(Math.asin(d));
+    arccos = (d) => this.rtd(Math.acos(d));
+    arctan = (d) => this.rtd(Math.atan(d));
+
+    arccot = (x) => this.rtd(Math.atan(1 / x));
+    arctan2 = (y, x) => this.rtd(Math.atan2(y, x));
+}
+
+
+//------------------------- Export ------------------------
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { PrayTime };
+}
+
+
+function updateJadwalSholat(){
+
+	const PT = new PrayTime('ISNA');
+    const now = new Date();
+	
+	PT.adjust({
+	  fajr: 20,      // Subuh
+	  isha: 18,      // Isya
+	  asr: 'Standard', // Syafi'i
+	});
+
+	PT.tune({
+	  fajr: 2,      // Add 2 minutes to Fajr time
+	  sunrise: 2,
+	  dhuhr: 3,
+	  asr: 2,
+	  sunset: 2,
+	  maghrib: 3,
+	  isha: 2      // Subtract 1 minute from Isha time
+	});
+
+	PT.location([-6.178306,106.631889]).timezone('Asia/Jakarta');
+	times=PT.getTimes();
+	//console.log(times);
+	document.getElementById("s1").innerHTML=times.fajr;
+	document.getElementById("s2").innerHTML=times.sunrise;
+	document.getElementById("s3").innerHTML=times.dhuhr;
+	document.getElementById("s4").innerHTML=times.asr;
+	document.getElementById("s5").innerHTML=times.maghrib;
+	document.getElementById("s6").innerHTML=times.isha;
+	
+	
+	 // Urutan sholat yang dihitung
+  const prayers = [
+    { name: "Subuh",   time: times.fajr },
+	{ name: "Terbit",   time: times.sunrise },
+    { name: "Dzuhur",  time: times.dhuhr },
+    { name: "Ashar",   time: times.asr },
+    { name: "Maghrib", time: times.maghrib },
+    { name: "Isya",    time: times.isha }
+  ];
+
+  let nextPrayer = null;
+
+  for (const p of prayers) {
+    const [h, m] = p.time.split(":").map(Number);
+    const t = new Date();
+    t.setHours(h, m, 0, 0);
+
+    if (t > now) {
+      nextPrayer = { name: p.name, time: t };
+      break;
+    }
+  }
+
+  // Kalau semua sudah lewat → Subuh besok
+  if (!nextPrayer) {
+    const [h, m] = times.fajr.split(":").map(Number);
+    const t = new Date();
+    t.setDate(t.getDate() + 1);
+    t.setHours(h, m, 0, 0);
+    nextPrayer = { name: "Subuh", time: t };
+  }
+
+  const diff = nextPrayer.time - now;
+
+  const hours   = Math.floor(diff / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+  
+  
+   document.getElementById("countdown").innerHTML =
+    `<b>${nextPrayer.name}</b> : - ` +
+    `${String(hours).padStart(2,"0")}:` +
+    `${String(minutes).padStart(2,"0")}:` +
+    `${String(seconds).padStart(2,"0")}`;
+	
+}
+
+updateJadwalSholat();
+setInterval(updateJadwalSholat,1000); // tiap 1 detik
+
+
+
+
+// ===== Background Slide =====
+ 
+ imgs = new Array();
+ curr_imgs = new Array();
+ curr_slide_cksum="";
+ 
+ 
+
+
+let idx = 0;
+const bg = document.querySelector(".content");
+
+let timerBG;
+
+
+
+
+async function fetchGithubFile() {
+  const d = new Date();
+  const timestamp = d.getTime();
+	  
+  const url = "https://cdn.almujahidin.web.id/slide/slide.txt?nc="+timestamp;
+
+  const headers = {};
+  
+
+  try {
+    const res = await fetch(url, { headers });
+    if (!res.ok) throw new Error(res.status + " " + res.statusText);
+    const jobj = await res.json();
+
+    
+      
+      //const jobj= JSON.parse(data);
+	  
+	  const slides= jobj[0][0]["slides"];
+	  const kas_info = jobj[1][0]["kas"];
+	  const khatib = jobj[2][0]["khatib"];
+	  const runText = jobj[3][0]["runText"];
+	  
+	  if(timerBG){
+		clearInterval(timerBG);
+		imgs=[];
+		
+	  }
+	  
+	  
+	  slides.forEach(function(item, index) {
+		  //console.log(item);
+	      const img = new Image();
+			img.src = item;
+			imgs.push(img);
+		 
+	  });
+	  
+	  if(curr_slide_cksum !== jobj[0][0]["cksum"]){
+			console.log("slide updated");
+			curr_slide_cksum = jobj[0][0]["cksum"];
+			curr_imgs = imgs;
+			idx=0;
+	  }
+	  
+	  if(runText!= ""){
+		const el = document.getElementById("marquee");
+		
+		 el.innerHTML = runText;
+
+  
+	  }
+	  
+	 document.getElementById("debit").innerHTML="Rp"+kas_info['debit'];
+	  document.getElementById("kredit").innerHTML="Rp"+kas_info['kredit'];
+	  document.getElementById("saldo").innerHTML="Rp"+kas_info['saldo'];
+	  
+	 
+	 nextBG();
+	 timerBG=setInterval(nextBG, 8000);
+
+	  
+	  //console.log(runText);
+	  
+	  
+	 
+   
+
+  } catch (err) {
+     console.error(err);
+  }
+}
+
+// Jalankan
+fetchGithubFile();
+setInterval(fetchGithubFile, 60000);
+
+
+function nextBG() {
+	if(idx >= curr_imgs.length){
+		idx=0;
+		
+	}
+	if(curr_imgs.length > 0){
+		bg.style.backgroundImage = `url(${curr_imgs[idx].src})`;
+	
+		//console.log( `url(${curr_imgs[idx].src})`);
+			
+		idx = (idx + 1);
+	    //console.log("idx="+idx);
+    		
+	}
+}
+
+
+function updateDateTime() {
+  const now = new Date();
+
+  // === TANGGAL & JAM MASEHI ===
+  const tanggalMasehi = now.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "2-digit"
+  });
+
+  const jam = now.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+
+  
+
+  // === TANGGAL HIJRIYAH ===
+  const hijri = new Intl.DateTimeFormat("id-ID-u-ca-islamic", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(now);
+
+  document.getElementById("datetime").innerHTML =
+    `${tanggalMasehi} <br/><b>${jam} WIB</b><br><span style="color:green;font-size:16px"><b>${hijri}</b></span>`;
+	
+  
+}
+
+// Update setiap detik
+updateDateTime();
+setInterval(updateDateTime, 1000);
+
+</script>
+
+<script>
+// ============================================
+// Banner Tunggal: Hari Besar Islam & Ramadhan
+// ============================================
+
+const islamicEventsAll = [
+  { name: "Isra Mi'raj",  hDay: 27, hMonth: 7 },
+  { name: "Nuzulul Qur'an", hDay: 17, hMonth: 9 },
+  { name: "Idul Fitri",  hDay: 1,  hMonth: 10 },
+  { name: "Idul Adha",   hDay: 10, hMonth: 12 },
+  { name: "Maulid Nabi", hDay: 12, hMonth: 3 },
+  { name: "Ramadhan",   hDay: 1,  hMonth: 9 }
+];
+
+function getHijriParts2(date){
+  const fmt = new Intl.DateTimeFormat('en-TN-u-ca-islamic', { day:'numeric', month:'numeric', year:'numeric' });
+  const parts = fmt.formatToParts(date);
+  const get = (t)=> Number(parts.find(p=>p.type===t).value);
+  return { day:get('day'), month:get('month'), year:get('year') };
+}
+
+function findNextIslamicEventAll(){
+  const start = new Date();
+  for(let i=0;i<370;i++){
+    const d = new Date(start);
+    d.setDate(start.getDate()+i);
+    const h = getHijriParts2(d);
+    for(const ev of islamicEventsAll){
+      if(h.day===ev.hDay && h.month===ev.hMonth){
+        return { event:ev.name, date:d };
+      }
+    }
+  }
+  return null;
+}
+
+let nextEventAll = findNextIslamicEventAll();
+
+function updateUnifiedIslamicBanner(){
+  const el = document.getElementById('islamicCountdown');
+  if(!el) return;
+
+  if(!nextEventAll){
+    el.style.display='none';
+    return;
+  }
+
+  const now = new Date();
+  const diff = nextEventAll.date - now;
+
+  if(diff <= 0){
+    el.style.display='none';
+    nextEventAll = findNextIslamicEventAll();
+    return;
+  }
+
+  // hitung hari, dibulatkan ke atas
+  const days = Math.ceil(diff / (1000*60*60*24));
+
+  // tampilkan hanya jika <= 10 hari
+  if(days > 10){
+    el.style.display = 'none';
+    return;
+  }
+
+  const label = nextEventAll.event === 'Ramadhan'
+    ? 'Menuju Ramadhan'
+    : `Menuju ${nextEventAll.event}`;
+
+  el.innerHTML = `${label}: ${days} hari lagi`;
+  el.style.display='block';
+}
+
+updateUnifiedIslamicBanner();
+setInterval(updateUnifiedIslamicBanner, 60000); // update tiap 1 menit sudah cukup
+
+</script>
+
+
+
+
+</html>
